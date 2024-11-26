@@ -1,35 +1,70 @@
 const Product = require("../models/Product");
-const uploadImageToCloudinary = require("../utils/upload");
+const { uploadImageToCloudinary } = require("../utils/upload");
 require("dotenv").config();
-
 
 exports.createProduct = async (req, res) => {
   try {
+    // Destructure body data
     const { title, description, price, discount, category } = req.body;
-    const image = req.file.image;
-    const Image = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+    console.log("Uploaded file:", req.files);
+    const image = req.files?.image;
+    console.log("Image:", image);
+
+    // Input validation
+    if (!title || !description || !price || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // Image upload to Cloudinary (assuming Cloudinary integration is set up)
+    let imageUrl = null;
+    try {
+      if (image) {
+        console.log("Image temp file path:", image.tempFilePath);
+        const result = await uploadImageToCloudinary(image, {
+          folder: process.env.FOLDER_NAME,
+        });
+        imageUrl = result.secure_url;
+        console.log("Image URL:", imageUrl);
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Image not found",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading image to Cloudinary:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Cannot upload image",
+      });
+    }
+
+    // Create product record
     const product = await Product.create({
       title,
       description,
       price,
-      image: Image.secure_url,
+      image: imageUrl,
       discount,
       category,
     });
+
     return res.status(200).json({
       success: true,
       data: product,
       message: "Product created successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating product:", error);
     return res.status(500).json({
       success: false,
       message: "Cannot create product",
     });
   }
 };
-
 exports.updateProduct = async (req, res) => {
   try {
     const prodId = req.params.id;
