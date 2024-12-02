@@ -39,7 +39,7 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   topSelling: {
-    type: Boolean,
+    type: String,
     default: false,
   },
 });
