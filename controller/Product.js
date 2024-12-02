@@ -5,7 +5,8 @@ require("dotenv").config();
 exports.createProduct = async (req, res) => {
   try {
     // Destructure body data
-    const { title, description, price, discount, category } = req.body;
+    const { title, description, price, discount, category, topSelling } =
+      req.body;
     console.log("Uploaded file:", req.files);
     const image = req.files?.image;
     console.log("Image:", image);
@@ -50,6 +51,7 @@ exports.createProduct = async (req, res) => {
       image: imageUrl,
       discount,
       category,
+      topSelling,
     });
 
     return res.status(200).json({
